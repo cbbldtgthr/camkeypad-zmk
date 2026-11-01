@@ -1,0 +1,12 @@
+# GitHub Actions build matrix; one UF2 per entry.
+---
+include:
+  - board: nice_nano//zmk
+    shield: camkeypad
+  - board: nice_nano//zmk
+    shield: camkeypad
+    snippet: zmk-usb-logging
+    artifact-name: camkeypad-debug
+  # Clears BLE bonds; the pad has no key bound to &bt BT_CLR.
+  - board: nice_nano//zmk
+    shield: settings_reset

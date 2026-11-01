@@ -1,0 +1,13 @@
+#include <behaviors.dtsi>
+#include <dt-bindings/zmk/keys.h>
+
+/ {
+    keymap {
+        compatible = "zmk,keymap";
+
+        default_layer {
+            // Open Camera: volume up = shutter / start-stop video, volume down = pause/resume
+            bindings = <&kp C_VOL_UP &kp C_VOL_DN>;
+        };
+    };
+};

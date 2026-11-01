@@ -1,0 +1,9 @@
+file_format: "1"
+id: camkeypad
+name: camkeypad
+type: shield
+url: https://github.com/cbbldtgthr/camkeypad-zmk
+requires: [pro_micro]
+features:
+  - keys
+  - display

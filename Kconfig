@@ -1,0 +1,14 @@
+config CAMKEYPAD
+    bool "camkeypad status link from Open Camera"
+    depends on ZMK_BLE
+    default y if SHIELD_CAMKEYPAD
+
+config CAMKEYPAD_STATUS_SCREEN
+    bool "camkeypad OLED status screen"
+    depends on CAMKEYPAD && ZMK_DISPLAY_STATUS_SCREEN_CUSTOM
+    default y
+    select LV_USE_LABEL
+    select LV_FONT_MONTSERRAT_14
+    select LV_FONT_MONTSERRAT_16
+    select LV_FONT_MONTSERRAT_28
+    imply LV_USE_THEME_MONO

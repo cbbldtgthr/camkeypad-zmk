@@ -19,3 +19,11 @@ protocol-sync-java opencamera_dir:
 # Copy the generated C header into an Arduino sketch folder
 protocol-sync-c sketch_dir:
     just_scripts/protocol-sync-c.sh {{sketch_dir}} {{java_package}}
+
+# Download the UF2s from the latest successful GitHub Actions build into build/firmware
+fw-fetch:
+    just_scripts/fw-fetch.sh
+
+# Copy a UF2 onto a nice!nano in bootloader mode (double-tap reset first)
+fw-flash uf2:
+    cp {{uf2}} /Volumes/NICENANO/
