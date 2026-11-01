@@ -1,0 +1,34 @@
+# Keep the Arduino core and tools inside this repo instead of ~/Library/Arduino15
+export ARDUINO_DIRECTORIES_DATA := justfile_directory() / ".arduino/data"
+export ARDUINO_DIRECTORIES_DOWNLOADS := justfile_directory() / ".arduino/staging"
+export ARDUINO_DIRECTORIES_USER := justfile_directory() / ".arduino/user"
+export ARDUINO_BOARD_MANAGER_ADDITIONAL_URLS := "https://adafruit.github.io/arduino-board-index/package_adafruit_index.json"
+
+# nice!nano v2 runs the Feather nRF52840 Express board definition (same bootloader and SoftDevice)
+fqbn := "adafruit:nrf52:feather52840"
+core := "adafruit:nrf52@1.7.0"
+
+[private]
+default:
+    @just --list
+
+# Install the pinned Adafruit nRF52 core into .arduino/
+setup:
+    arduino-cli core update-index
+    arduino-cli core install {{core}}
+
+# Compile the sketch into build/
+compile:
+    arduino-cli compile --fqbn {{fqbn}} --output-dir build --warnings all .
+
+# List connected boards and their serial ports
+ports:
+    arduino-cli board list
+
+# Upload build/ to the board on the given serial port (double-tap reset first if it doesn't respond)
+upload port:
+    arduino-cli upload --fqbn {{fqbn}} --port {{port}} --input-dir build .
+
+# Open the USB serial log; type u / d + Enter to send volume up / down
+monitor port:
+    arduino-cli monitor --port {{port}} --config baudrate=115200
