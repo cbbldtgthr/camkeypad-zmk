@@ -12,6 +12,10 @@ protocol-gen:
 protocol-check:
     just_scripts/protocol-check.sh {{java_package}}
 
-# Copy the generated protocol code into the Open Camera fork and the Arduino sketch folder
-protocol-sync opencamera_dir arduino_sketch_dir:
-    just_scripts/protocol-sync.sh {{opencamera_dir}} {{arduino_sketch_dir}} {{java_package}}
+# Copy the generated Java class into the Open Camera fork
+protocol-sync-java opencamera_dir:
+    just_scripts/protocol-sync-java.sh {{opencamera_dir}} {{java_package}}
+
+# Copy the generated C header into an Arduino sketch folder
+protocol-sync-c sketch_dir:
+    just_scripts/protocol-sync-c.sh {{sketch_dir}} {{java_package}}
