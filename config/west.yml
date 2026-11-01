@@ -7,6 +7,18 @@ manifest:
       remote: zmkfirmware
       # Pinned ZMK main (2026-10-09); bump together with .github/workflows/build.yml.
       revision: 4dd95d7840eb3d5a3f59bb29fbf1ab054715ef85
-      import: app/west.yml
+      import:
+        file: app/west.yml
+        # Only what a nice!nano build needs; the full manifest is GBs of other chips.
+        name-allowlist:
+          - zephyr
+          - cmsis
+          - cmsis_6
+          - hal_nordic
+          - lvgl
+          - mbedtls
+          - nanopb
+          - tinycrypt
+          - zmk-studio-messages
   self:
     path: config

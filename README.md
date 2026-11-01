@@ -30,4 +30,5 @@ the phone.
 | `opencamera-code` | Personal Open Camera fork that pushes recording state to the pad |
 | arduino test | Throwaway sketch proving HID and a custom GATT service coexist on the phone |
 
-Run `just` to list the available commands.
+Run `just` to list the available commands. Before debugging the pad, read
+[`docs/bring-up-learnings.md`](docs/bring-up-learnings.md).

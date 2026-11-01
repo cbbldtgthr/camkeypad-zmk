@@ -1,4 +1,6 @@
 java_package := "net.sourceforge.opencamera.remotecontrol"
+zmk_image := "zmkfirmware/zmk-build-arm:stable"
+zmk_volume := "camkeypad-zmk-west"
 
 [private]
 default:
@@ -26,4 +28,12 @@ fw-fetch:
 
 # Copy a UF2 onto a nice!nano in bootloader mode (double-tap reset first)
 fw-flash uf2:
-    cp {{uf2}} /Volumes/NICENANO/
+    just_scripts/fw-flash.sh {{uf2}}
+
+# Fetch ZMK and Zephyr into a Docker volume for local builds (first run downloads a few GB)
+fw-setup:
+    just_scripts/fw-setup.sh {{zmk_image}} {{zmk_volume}}
+
+# Build a USB-logging firmware in Docker to build/local/<name>.uf2; extra args go to CMake
+fw-build-debug name *cmake_args:
+    just_scripts/fw-build-debug.sh {{zmk_image}} {{zmk_volume}} {{name}} {{cmake_args}}
