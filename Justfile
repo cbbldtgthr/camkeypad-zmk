@@ -31,6 +31,10 @@ fw-fetch:
 fw-flash uf2:
     just_scripts/fw-flash.sh {{uf2}}
 
+# Erase the pad's pairings and saved settings, then flash a UF2 (default: latest CI firmware); start in bootloader mode
+fw-reset *uf2:
+    just_scripts/fw-reset.sh {{uf2}}
+
 # Fetch ZMK and Zephyr into a Docker volume for local builds (first run downloads a few GB)
 fw-setup:
     just_scripts/fw-setup.sh {{zmk_image}} {{zmk_volume}}
