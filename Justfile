@@ -10,9 +10,10 @@ default:
 protocol-gen:
     python3 -I protocol/gen.py --in protocol/protocol.toml --out-dir protocol/generated --java-package {{java_package}}
 
-# Fail if protocol/generated is out of date with protocol/protocol.toml
+# Fail if protocol/generated or the Arduino sketch's header is out of date with protocol/protocol.toml
 protocol-check:
     just_scripts/protocol-check.sh {{java_package}}
+    just_scripts/protocol-check-sketch.sh
 
 # Copy the generated Java class into the Open Camera fork
 protocol-sync-java opencamera_dir:

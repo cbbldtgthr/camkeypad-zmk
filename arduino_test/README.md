@@ -1,10 +1,10 @@
 # camkeypad arduino_test
 
-Throwaway sketch that answers one question before any ZMK work: does the phone let an
+Bench sketch that answers one question without any ZMK firmware: does the phone let an
 app talk GATT to the pad while Android's HID host is using it as a keyboard?
 
 Runs on a bare nice!nano v2 over USB, no other hardware. `camkeypad_protocol.h` is
-generated in `camkeypad-zmk`; refresh it from there, never edit it here.
+generated; run `just protocol-sync-c arduino_test` from the repo root, never edit it here.
 
 ## Run it
 

@@ -24,11 +24,11 @@ the phone.
 
 ## The parts
 
-| Repo | Role |
+| Part | Role |
 |---|---|
-| `camkeypad-zmk` (this repo) | ZMK firmware for the pad (nice!nano v2), and the protocol definition |
-| `opencamera-code` | Personal Open Camera fork that pushes recording state to the pad |
-| arduino test | Throwaway sketch proving HID and a custom GATT service coexist on the phone |
+| This repo | ZMK firmware for the pad (nice!nano v2), and the protocol definition |
+| [`opencamera-camkeypad`](https://github.com/cbbldtgthr/opencamera-camkeypad) | Open Camera fork that pushes recording state to the pad |
+| [`arduino_test/`](arduino_test/README.md) | Bench sketch that checks a phone lets HID and a custom GATT service coexist, on a bare nice!nano |
 
 Run `just` to list the available commands. Before debugging the pad, read
 [`docs/bring-up-learnings.md`](docs/bring-up-learnings.md).
