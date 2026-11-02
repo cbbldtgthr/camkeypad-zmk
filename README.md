@@ -32,3 +32,7 @@ the phone.
 
 Run `just` to list the available commands. Before debugging the pad, read
 [`docs/bring-up-learnings.md`](docs/bring-up-learnings.md).
+
+## License
+
+[MIT](LICENSE). The Open Camera fork is a separate repo under its own GPLv3 license.
