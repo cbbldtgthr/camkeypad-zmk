@@ -1,0 +1,3 @@
+# Project-local arduino-cli data (cores, tools, libraries) and build output
+.arduino/
+build/
