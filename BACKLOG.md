@@ -9,8 +9,5 @@
 
 ## Exposure encoder (firmware and Open Camera fork)
 
-- Add a second encoder for exposure, with its click locking and unlocking auto exposure.
-  Open Camera has no key for either, so the fork needs key cases calling `changeExposure()`
-  and `clickedExposureLock()`. Send `F10`, `F11` and `F12`: Android's key map leaves F13 and
-  up commented out through Android 15. Check on the pad that the lock works while recording,
-  and whether exposure can still change while locked.
+- Check on the pad that the lock works while recording, and whether compensation can still
+  change or reset while locked.

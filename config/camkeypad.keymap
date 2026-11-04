@@ -6,11 +6,12 @@
         compatible = "zmk,keymap";
 
         default_layer {
-            // Open Camera: volume up = shutter / start-stop video, volume down = pause/resume
-            // Zoom encoder: turn = zoom in/out; click toggles Open Camera's exposure panel while testing the wiring
-            bindings = <&kp C_VOL_UP &kp C_VOL_DN &kp KP_DIVIDE>;
-            // With this wiring ZMK reads a right turn as its counter-clockwise direction, the second key
-            sensor-bindings = <&inc_dec_kp KP_MINUS KP_PLUS>;
+            // F7 = shutter / start-stop video, F8 = pause/resume
+            // Encoder click (F12) locks auto exposure; holding zoom keys zooms smoothly through
+            // Android key repeat; F9 resets exposure compensation
+            bindings = <&kp KP_MINUS &kp KP_PLUS &kp F12 &kp F9 &kp F7 &kp F8>;
+            // Exposure compensation. ZMK reads a right turn as its second direction with this wiring
+            sensor-bindings = <&inc_dec_kp F11 F10>;
         };
     };
 };
