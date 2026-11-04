@@ -32,17 +32,20 @@ that copy is old.
 | `cp` reports an I/O error when flashing | The board reboots as the copy ends. The flash worked. | `just fw-flash` checks that the drive went away | Seen twice; the board came up on the new firmware both times |
 | Pad stays on NO LINK after pairing | Correct. Pairing only sets up the keys; status starts once Open Camera connects, and that app has to have this pad selected as its remote device. | Select the pad in the Open Camera build's remote settings | Worked |
 | NO LINK on a replacement board, even though HID keys work | Open Camera saves the remote's Bluetooth address, and a new board has a different one. | Select the new board in the remote settings | The code saves the address; selecting it again was part of the reset that fixed this |
+| OLED stays dark though its VCC reads 3.3V; the USB log shows `ssd1306: Failed to initialize device!` at boot | SDA shorted to SCL. Two screens failed the same way. | Clear the short, then reset the pad, because the driver only tries at boot | Fixed by clearing the short |
 
 ## Still unexplained
 
 - **"Needs a special app to pair":** the phone said this once, on the first attempt with
   the old settings. It did not come back after the reset.
-- **Reading the USB log:** we never got a log line from a ZMK debug build. A raw read and a
-  background `arduino-cli monitor` both captured nothing, which may only mean nothing was
-  being logged. Try `arduino-cli monitor` in a real terminal first.
-- **Volume keys on the replacement board:** they did nothing while `KP_PLUS` and `KP_MINUS`
-  still worked, then worked after a reset and fresh pairing. We don't know whether the reset
-  was the fix, because nothing narrowed it down first.
+- **Volume keys from the pad:** `C_VOL_UP` and `C_VOL_DN` came and went on the same board and
+  firmware, while keyboard keys kept working. When they failed, the USB log showed them being
+  sent with no errors, but the phone showed no volume bar. A reset and fresh pairing fixed it
+  once, then didn't; unplugging the OLED didn't either. The phone's own volume buttons kept
+  working. The pad now sends `F7` and `F8` instead, so this cause is still unknown.
+- **What a clean USB log proves:** ZMK logs each key before sending it and drops keys without
+  a word when there is no connection. To see that the app is connected, look for
+  `write_status` lines every couple of seconds.
 - **Slow serial port:** macOS took minutes to finish setting up the board on USB after one
   flash. An "allow accessory" prompt is a guess, not something we saw.
 
@@ -57,6 +60,9 @@ that copy is old.
   support, so `config/west.yml` allows only what a nice!nano needs. When a new feature
   needs another module, Kconfig warnings stop the build (that is how `mbedtls` got added).
 - **Reused boards:** run `just fw-reset` first, every time.
+- **Read the USB log first.** Debug builds log to `/dev/cu.usbmodem*`, and reading the port
+  from a script works. The first read after boot also returns buffered boot lines, where
+  driver errors show up.
 
 ## Check on any new board
 
@@ -64,5 +70,5 @@ that copy is old.
 2. The OLED shows NO LINK, and the phone sees `camkeypad` and pairs.
 3. Select the pad in Open Camera: the pad shows IDLE.
 4. Record from the phone: time counts on the pad.
-5. Press the keys with USB plugged in: they still control the phone. Pausing needs Open
-   Camera's volume keys option set to the pause action.
+5. Press the keys with USB plugged in: they still control the phone. Start/stop and pause
+   need the Open Camera fork, which handles `F7` and `F8`.
