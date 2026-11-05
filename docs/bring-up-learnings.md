@@ -83,4 +83,4 @@ Hold both zoom buttons for the service layer, then:
 3. Select the pad in Open Camera: the pad shows PHOTO or VIDEO, and the phone's battery.
 4. Record from the phone: time counts on the pad.
 5. Press the keys with USB plugged in: they still control the phone. Start/stop and pause
-   need the Open Camera fork, which handles their `R` and `P` keys.
+   need the Open Camera fork, which handles their `R` and `P` keys. Hold start/stop and turn the encoder for exposure.

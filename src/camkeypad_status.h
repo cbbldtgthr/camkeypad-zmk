@@ -18,6 +18,10 @@ struct camkeypad_view {
     uint32_t elapsed_ms;
     uint8_t mode;
     uint8_t phone_battery;
+    uint8_t focus;
+    uint16_t focus_distance_cm;
+    int8_t exposure_tenths;
+    uint8_t exposure_locked;
 };
 
 // Safe to call from any thread.

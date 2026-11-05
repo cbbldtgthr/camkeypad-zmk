@@ -22,8 +22,9 @@
 #define RULE "----------------"
 #define REFRESH_MS 100
 #define BLINK_MS 500
-// Must match SERVICE in config/camkeypad.keymap.
+// Must match config/camkeypad.keymap.
 #define SERVICE_LAYER 1
+#define EXPOSURE_LAYER 2
 
 static const struct device *display = DEVICE_DT_GET(DT_CHOSEN(zephyr_display));
 
@@ -50,6 +51,25 @@ static void format_elapsed(char *buf, size_t size, uint32_t ms) {
 }
 
 // Stay lit while recording or paused; otherwise follow ZMK's idle timeout.
+static void format_focus(char *buf, size_t size, const struct camkeypad_view *view) {
+    if (view->focus != CAMKEYPAD_FOCUS_MANUAL) {
+        snprintf(buf, size, "AF");
+    } else if (view->focus_distance_cm == CAMKEYPAD_FOCUS_DISTANCE_CM_INFINITY) {
+        snprintf(buf, size, "MF inf");
+    } else {
+        snprintf(buf, size, "MF %u.%02um", view->focus_distance_cm / 100,
+                 view->focus_distance_cm % 100);
+    }
+}
+
+static void format_exposure(char *buf, size_t size, const struct camkeypad_view *view) {
+    int tenths = view->exposure_tenths;
+    int magnitude = tenths < 0 ? -tenths : tenths;
+
+    snprintf(buf, size, "%c%d.%d%s", tenths < 0 ? '-' : '+', magnitude / 10, magnitude % 10,
+             view->exposure_locked ? " lock" : "");
+}
+
 static void update_blanking(const struct camkeypad_view *view) {
     bool busy = view->link == CAMKEYPAD_LINK_OK && (view->state == CAMKEYPAD_STATE_RECORDING ||
                                                      view->state == CAMKEYPAD_STATE_PAUSED);
@@ -70,7 +90,10 @@ static void refresh(lv_timer_t *timer) {
     char title[13] = "";
     char battery[8] = "";
     char elapsed[16];
-    char body[64] = "";
+    char state[32];
+    char focus[16];
+    char exposure[16];
+    char body[96] = "";
     char header[48];
 
     camkeypad_status_view(&view);
@@ -92,23 +115,29 @@ static void refresh(lv_timer_t *timer) {
         format_elapsed(elapsed, sizeof(elapsed), view.elapsed_ms);
         switch (view.state) {
         case CAMKEYPAD_STATE_IDLE:
-            strcpy(body, "state  idle");
+            strcpy(state, "state  idle");
             break;
         case CAMKEYPAD_STATE_RECORDING:
-            snprintf(body, sizeof(body), "state  REC\ntime   %s", elapsed);
+            snprintf(state, sizeof(state), "state  REC  %s", elapsed);
             break;
         case CAMKEYPAD_STATE_PAUSED:
             // Blink the frozen time so paused never reads as recording.
-            snprintf(body, sizeof(body), "state  PAUSED\ntime   %s",
+            snprintf(state, sizeof(state), "state  PAUSED  %s",
                      (k_uptime_get() / BLINK_MS) % 2 ? "" : elapsed);
             break;
         default:
-            snprintf(body, sizeof(body), "state  %u?", view.state);
+            snprintf(state, sizeof(state), "state  %u?", view.state);
             break;
         }
+        format_focus(focus, sizeof(focus), &view);
+        format_exposure(exposure, sizeof(exposure), &view);
+        snprintf(body, sizeof(body), "%s\nfocus  %s\nexpo   %s", state, focus, exposure);
         break;
     }
 
+    if (zmk_keymap_layer_active(EXPOSURE_LAYER)) {
+        strcpy(title, "EXPOSURE");
+    }
     if (zmk_keymap_layer_active(SERVICE_LAYER)) {
         strcpy(title, "SERVICE");
         strcpy(body, "start  enter bootloader\npause  hold 1s to unpair");

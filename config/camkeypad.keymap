@@ -5,6 +5,7 @@
 // src/status_screen.c shows SERVICE while this layer is active, so keep the numbers in step.
 #define BASE 0
 #define SERVICE 1
+#define EXPOSURE 2
 
 / {
     behaviors {
@@ -32,6 +33,7 @@
         service {
             key-positions = <0 1>;
             bindings = <&mo SERVICE>;
+            layers = <BASE>;
         };
     };
 
@@ -40,18 +42,25 @@
 
         default_layer {
             // Plain letters, so any Bluetooth keyboard works as a remote too. R = shutter or
-            // start/stop video, P = pause/resume, M = photo/video, E = exposure lock.
-            // Holding the zoom keys zooms smoothly through Android key repeat.
-            bindings = <&kp KP_MINUS &kp KP_PLUS &kp E &kp M &kp R &kp P>;
-            // Exposure compensation, H down and L up. ZMK reads a right turn as its second
+            // start/stop video, P = pause/resume, M = photo/video, F = auto/manual focus.
+            // Holding the zoom keys zooms smoothly through Android key repeat. Holding start/stop
+            // selects the exposure layer, so R is sent on release.
+            bindings = <&kp KP_MINUS &kp KP_PLUS &kp F &kp M &lt EXPOSURE R &kp P>;
+            // Manual focus, J farther and K nearer. ZMK reads a right turn as its second
             // direction with this wiring.
-            sensor-bindings = <&inc_dec_kp H L>;
+            sensor-bindings = <&inc_dec_kp J K>;
         };
 
         // Hold both zoom keys. Start/stop enters the bootloader; hold pause to clear the pairing.
         service_layer {
             bindings = <&none &none &none &none &bootloader &pair_clr BT_CLR>;
             sensor-bindings = <&no_turn>;
+        };
+
+        // Hold start/stop. The encoder sets exposure, H down and L up; its click, E, locks it.
+        exposure_layer {
+            bindings = <&trans &trans &kp E &none &none &none>;
+            sensor-bindings = <&inc_dec_kp H L>;
         };
     };
 };

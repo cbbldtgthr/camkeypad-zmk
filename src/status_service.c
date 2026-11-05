@@ -48,8 +48,10 @@ static ssize_t write_status(struct bt_conn *conn, const struct bt_gatt_attr *att
     bt_addr_le_copy(&sender, bt_conn_get_dst(conn));
     k_spin_unlock(&lock, key);
 
-    LOG_DBG("status v%u state %u elapsed %u ms mode %u battery %u", status.version, status.state,
-            status.elapsed_ms, status.mode, status.phone_battery);
+    LOG_DBG("status v%u state %u elapsed %u ms mode %u battery %u focus %u %u cm exposure %d lock %u",
+            status.version, status.state, status.elapsed_ms, status.mode, status.phone_battery,
+            status.focus, status.focus_distance_cm, status.exposure_tenths,
+            status.exposure_locked);
     return len;
 }
 
@@ -83,6 +85,10 @@ void camkeypad_status_view(struct camkeypad_view *out) {
         out->elapsed_ms = last.elapsed_ms;
         out->mode = last.mode;
         out->phone_battery = last.phone_battery;
+        out->focus = last.focus;
+        out->focus_distance_cm = last.focus_distance_cm;
+        out->exposure_tenths = last.exposure_tenths;
+        out->exposure_locked = last.exposure_locked;
         if (last.version != CAMKEYPAD_PROTOCOL_VERSION) {
             out->link = CAMKEYPAD_LINK_BAD_VERSION;
         } else {

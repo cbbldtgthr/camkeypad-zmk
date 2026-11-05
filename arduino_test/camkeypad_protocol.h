@@ -4,7 +4,7 @@
 #include <stddef.h>
 #include <stdint.h>
 
-#define CAMKEYPAD_PROTOCOL_VERSION 2
+#define CAMKEYPAD_PROTOCOL_VERSION 3
 
 #define CAMKEYPAD_SERVICE_UUID_STR "1d0d0dc8-5cd6-4d86-b577-af570c2c28c1"
 /* For Zephyr: BT_UUID_DECLARE_128(CAMKEYPAD_SERVICE_UUID_ENCODE) */
@@ -33,10 +33,19 @@ enum camkeypad_phone_battery {
     CAMKEYPAD_PHONE_BATTERY_UNKNOWN = 255,
 };
 
+enum camkeypad_focus {
+    CAMKEYPAD_FOCUS_AUTO = 0,
+    CAMKEYPAD_FOCUS_MANUAL = 1,
+};
+
+enum camkeypad_focus_distance_cm {
+    CAMKEYPAD_FOCUS_DISTANCE_CM_INFINITY = 0,
+};
+
 #define CAMKEYPAD_HEARTBEAT_MS 2000
 #define CAMKEYPAD_STALE_AFTER_MS 5000
 
-#define CAMKEYPAD_STATUS_LEN 8
+#define CAMKEYPAD_STATUS_LEN 13
 
 struct camkeypad_status {
     uint8_t version;
@@ -44,6 +53,10 @@ struct camkeypad_status {
     uint32_t elapsed_ms;
     uint8_t mode;
     uint8_t phone_battery;
+    uint8_t focus;
+    uint16_t focus_distance_cm;
+    int8_t exposure_tenths;
+    uint8_t exposure_locked;
 };
 
 /* Decode a status write. Returns 0 on success, -1 if buf is too short.
@@ -59,5 +72,9 @@ static inline int camkeypad_status_decode(const uint8_t *buf, size_t len,
     out->elapsed_ms = ((uint32_t)buf[2] << 0) | ((uint32_t)buf[3] << 8) | ((uint32_t)buf[4] << 16) | ((uint32_t)buf[5] << 24);
     out->mode = ((uint8_t)buf[6] << 0);
     out->phone_battery = ((uint8_t)buf[7] << 0);
+    out->focus = ((uint8_t)buf[8] << 0);
+    out->focus_distance_cm = ((uint16_t)buf[9] << 0) | ((uint16_t)buf[10] << 8);
+    out->exposure_tenths = ((int8_t)buf[11] << 0);
+    out->exposure_locked = ((uint8_t)buf[12] << 0);
     return 0;
 }
