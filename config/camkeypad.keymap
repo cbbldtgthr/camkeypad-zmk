@@ -8,7 +8,7 @@
         default_layer {
             // F7 = shutter / start-stop video, F8 = pause/resume
             // Encoder click (F12) locks auto exposure; holding zoom keys zooms smoothly through
-            // Android key repeat; F9 resets exposure compensation
+            // Android key repeat; F9 switches between photo and video
             bindings = <&kp KP_MINUS &kp KP_PLUS &kp F12 &kp F9 &kp F7 &kp F8>;
             // Exposure compensation. ZMK reads a right turn as its second direction with this wiring
             sensor-bindings = <&inc_dec_kp F11 F10>;

@@ -32,6 +32,7 @@ that copy is old.
 | `cp` reports an I/O error when flashing | The board reboots as the copy ends. The flash worked. | `just fw-flash` checks that the drive went away | Seen twice; the board came up on the new firmware both times |
 | Pad stays on NO LINK after pairing | Correct. Pairing only sets up the keys; status starts once Open Camera connects, and that app has to have this pad selected as its remote device. | Select the pad in the Open Camera build's remote settings | Worked |
 | NO LINK on a replacement board, even though HID keys work | Open Camera saves the remote's Bluetooth address, and a new board has a different one. | Select the new board in the remote settings | The code saves the address; selecting it again was part of the reset that fixed this |
+| Wide 28pt letters (`O`, `V`) draw as dotted blocks while narrower ones are fine | LVGL allocates a buffer per glyph from its pool, and at 4096 bytes the largest ones most likely failed. | `CONFIG_LV_Z_MEM_POOL_SIZE=8192` | Going to 8192 fixed it. The failed allocation is inferred from the code and glyph sizes. |
 | OLED stays dark though its VCC reads 3.3V; the USB log shows `ssd1306: Failed to initialize device!` at boot | SDA shorted to SCL. Two screens failed the same way. | Clear the short, then reset the pad, because the driver only tries at boot | Fixed by clearing the short |
 
 ## Still unexplained
@@ -68,7 +69,7 @@ that copy is old.
 
 1. Run `just fw-reset`; forget old entries on the phone.
 2. The OLED shows NO LINK, and the phone sees `camkeypad` and pairs.
-3. Select the pad in Open Camera: the pad shows IDLE.
+3. Select the pad in Open Camera: the pad shows PHOTO or VIDEO, and the phone's battery.
 4. Record from the phone: time counts on the pad.
 5. Press the keys with USB plugged in: they still control the phone. Start/stop and pause
    need the Open Camera fork, which handles `F7` and `F8`.

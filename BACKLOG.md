@@ -10,4 +10,4 @@
 ## Exposure encoder (firmware and Open Camera fork)
 
 - Check on the pad that the lock works while recording, and whether compensation can still
-  change or reset while locked.
+  change while locked.

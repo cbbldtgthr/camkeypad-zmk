@@ -22,6 +22,7 @@
 static const struct device *display = DEVICE_DT_GET(DT_CHOSEN(zephyr_display));
 
 static lv_obj_t *band_label;
+static lv_obj_t *battery_label;
 static lv_obj_t *main_label;
 static bool blanked;
 
@@ -63,11 +64,16 @@ static void update_blanking(const struct camkeypad_view *view) {
 static void refresh(lv_timer_t *timer) {
     struct camkeypad_view view;
     char band[24];
+    char battery[8] = "";
     char main[24];
     const lv_font_t *main_font = &lv_font_montserrat_28;
 
     camkeypad_status_view(&view);
     update_blanking(&view);
+
+    if (view.link == CAMKEYPAD_LINK_OK && view.phone_battery <= 100) {
+        snprintf(battery, sizeof(battery), "%u%%", view.phone_battery);
+    }
 
     switch (view.link) {
     case CAMKEYPAD_LINK_NONE:
@@ -84,8 +90,8 @@ static void refresh(lv_timer_t *timer) {
         format_elapsed(main, sizeof(main), view.elapsed_ms);
         switch (view.state) {
         case CAMKEYPAD_STATE_IDLE:
-            strcpy(band, "IDLE");
-            strcpy(main, "--:--");
+            band[0] = '\0';
+            strcpy(main, view.mode == CAMKEYPAD_MODE_VIDEO ? "VIDEO" : "PHOTO");
             break;
         case CAMKEYPAD_STATE_RECORDING:
             strcpy(band, "REC");
@@ -106,6 +112,7 @@ static void refresh(lv_timer_t *timer) {
     }
 
     set_text(band_label, band, &lv_font_montserrat_14);
+    set_text(battery_label, battery, &lv_font_montserrat_14);
     set_text(main_label, main, main_font);
 }
 
@@ -115,6 +122,10 @@ lv_obj_t *zmk_display_status_screen(void) {
     band_label = lv_label_create(screen);
     lv_label_set_text(band_label, "");
     lv_obj_align(band_label, LV_ALIGN_TOP_LEFT, 0, 0);
+
+    battery_label = lv_label_create(screen);
+    lv_label_set_text(battery_label, "");
+    lv_obj_align(battery_label, LV_ALIGN_TOP_RIGHT, 0, 0);
 
     main_label = lv_label_create(screen);
     lv_label_set_text(main_label, "");

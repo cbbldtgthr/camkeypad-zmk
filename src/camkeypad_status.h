@@ -16,6 +16,8 @@ struct camkeypad_view {
     uint8_t state;
     // Projected to now: counts on locally between heartbeats while recording.
     uint32_t elapsed_ms;
+    uint8_t mode;
+    uint8_t phone_battery;
 };
 
 // Safe to call from any thread.
