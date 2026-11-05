@@ -1,7 +1,40 @@
 #include <behaviors.dtsi>
+#include <dt-bindings/zmk/bt.h>
 #include <dt-bindings/zmk/keys.h>
 
+// src/status_screen.c shows SERVICE while this layer is active, so keep the numbers in step.
+#define BASE 0
+#define SERVICE 1
+
 / {
+    behaviors {
+        // Losing the pairing costs more than a reset, so clearing it takes a one-second hold.
+        // Tap-preferred, so pressing another key during the hold doesn't clear it early.
+        pair_clr: pair_clr {
+            compatible = "zmk,behavior-hold-tap";
+            #binding-cells = <2>;
+            flavor = "tap-preferred";
+            tapping-term-ms = <1000>;
+            bindings = <&bt>, <&none>;
+        };
+
+        no_turn: no_turn {
+            compatible = "zmk,behavior-sensor-rotate";
+            #sensor-binding-cells = <0>;
+            bindings = <&none>, <&none>;
+        };
+    };
+
+    // A combo, because making the zoom keys hold-taps would break their key repeat.
+    combos {
+        compatible = "zmk,combos";
+
+        service {
+            key-positions = <0 1>;
+            bindings = <&mo SERVICE>;
+        };
+    };
+
     keymap {
         compatible = "zmk,keymap";
 
@@ -12,6 +45,12 @@
             bindings = <&kp KP_MINUS &kp KP_PLUS &kp F12 &kp F9 &kp F7 &kp F8>;
             // Exposure compensation. ZMK reads a right turn as its second direction with this wiring
             sensor-bindings = <&inc_dec_kp F11 F10>;
+        };
+
+        // Hold both zoom keys. Start/stop enters the bootloader; hold pause to clear the pairing.
+        service_layer {
+            bindings = <&none &none &none &none &bootloader &pair_clr BT_CLR>;
+            sensor-bindings = <&no_turn>;
         };
     };
 };

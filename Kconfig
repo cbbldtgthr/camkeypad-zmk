@@ -8,7 +8,5 @@ config CAMKEYPAD_STATUS_SCREEN
     depends on CAMKEYPAD && ZMK_DISPLAY_STATUS_SCREEN_CUSTOM
     default y
     select LV_USE_LABEL
-    select LV_FONT_MONTSERRAT_14
-    select LV_FONT_MONTSERRAT_16
-    select LV_FONT_MONTSERRAT_28
+    select LV_FONT_UNSCII_8
     imply LV_USE_THEME_MONO

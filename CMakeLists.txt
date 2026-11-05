@@ -1,5 +1,5 @@
 if(CONFIG_CAMKEYPAD)
   target_include_directories(app PRIVATE protocol/generated src)
   target_sources(app PRIVATE src/status_service.c)
-  target_sources_ifdef(CONFIG_CAMKEYPAD_STATUS_SCREEN app PRIVATE src/status_screen.c)
+  target_sources_ifdef(CONFIG_CAMKEYPAD_STATUS_SCREEN app PRIVATE src/status_screen.c src/font_small.c)
 endif()

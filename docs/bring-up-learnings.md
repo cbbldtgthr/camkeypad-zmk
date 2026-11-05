@@ -19,6 +19,17 @@ This erases the pad's pairings and saved Bluetooth name. Without an argument it 
 the CI firmware in `build/firmware`, which `just fw-fetch` refreshes, so run that first if
 that copy is old.
 
+### Without the reset pin
+
+Hold both zoom buttons for the service layer, then:
+
+- **Start/stop** enters the bootloader, in place of the double-tap. The `NICENANO` drive only
+  appears with USB plugged in; tap reset to get back out.
+- **Pause, held for a second,** clears the pad's pairing, in place of steps 1 to 3 above when
+  pairing is the only problem. Saved settings such as the Bluetooth name stay. Forget the pad
+  on the phone and pair again; Open Camera reconnects by itself, because the board's address
+  doesn't change.
+
 ## Symptoms and causes
 
 | What you see | Cause | Fix | How sure |
