@@ -54,7 +54,7 @@ Hold both zoom buttons for the service layer, then:
   firmware, while keyboard keys kept working. When they failed, the USB log showed them being
   sent with no errors, but the phone showed no volume bar. A reset and fresh pairing fixed it
   once, then didn't; unplugging the OLED didn't either. The phone's own volume buttons kept
-  working. The pad now sends `F7` and `F8` instead, so this cause is still unknown.
+  working. The pad no longer uses them, so this cause is still unknown.
 - **What a clean USB log proves:** ZMK logs each key before sending it and drops keys without
   a word when there is no connection. To see that the app is connected, look for
   `write_status` lines every couple of seconds.
@@ -83,4 +83,4 @@ Hold both zoom buttons for the service layer, then:
 3. Select the pad in Open Camera: the pad shows PHOTO or VIDEO, and the phone's battery.
 4. Record from the phone: time counts on the pad.
 5. Press the keys with USB plugged in: they still control the phone. Start/stop and pause
-   need the Open Camera fork, which handles `F7` and `F8`.
+   need the Open Camera fork, which handles their `R` and `P` keys.

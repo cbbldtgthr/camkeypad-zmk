@@ -39,12 +39,13 @@
         compatible = "zmk,keymap";
 
         default_layer {
-            // F7 = shutter / start-stop video, F8 = pause/resume
-            // Encoder click (F12) locks auto exposure; holding zoom keys zooms smoothly through
-            // Android key repeat; F9 switches between photo and video
-            bindings = <&kp KP_MINUS &kp KP_PLUS &kp F12 &kp F9 &kp F7 &kp F8>;
-            // Exposure compensation. ZMK reads a right turn as its second direction with this wiring
-            sensor-bindings = <&inc_dec_kp F11 F10>;
+            // Plain letters, so any Bluetooth keyboard works as a remote too. R = shutter or
+            // start/stop video, P = pause/resume, M = photo/video, E = exposure lock.
+            // Holding the zoom keys zooms smoothly through Android key repeat.
+            bindings = <&kp KP_MINUS &kp KP_PLUS &kp E &kp M &kp R &kp P>;
+            // Exposure compensation, H down and L up. ZMK reads a right turn as its second
+            // direction with this wiring.
+            sensor-bindings = <&inc_dec_kp H L>;
         };
 
         // Hold both zoom keys. Start/stop enters the bootloader; hold pause to clear the pairing.
