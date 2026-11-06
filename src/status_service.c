@@ -3,6 +3,7 @@
 #include <zephyr/bluetooth/bluetooth.h>
 #include <zephyr/bluetooth/conn.h>
 #include <zephyr/bluetooth/gatt.h>
+#include <zephyr/bluetooth/l2cap.h>
 #include <zephyr/bluetooth/uuid.h>
 #include <zephyr/kernel.h>
 #include <zephyr/logging/log.h>
@@ -12,6 +13,9 @@
 #include "camkeypad_status.h"
 
 LOG_MODULE_REGISTER(camkeypad, CONFIG_ZMK_LOG_LEVEL);
+
+BUILD_ASSERT(BT_L2CAP_RX_MTU >= CAMKEYPAD_ATT_MTU,
+             "raise CONFIG_BT_BUF_ACL_RX_SIZE to fit the protocol's att_mtu");
 
 #define SERVICE_UUID BT_UUID_DECLARE_128(CAMKEYPAD_SERVICE_UUID_ENCODE)
 #define STATUS_CHAR_UUID BT_UUID_DECLARE_128(CAMKEYPAD_STATUS_CHAR_UUID_ENCODE)
@@ -48,10 +52,10 @@ static ssize_t write_status(struct bt_conn *conn, const struct bt_gatt_attr *att
     bt_addr_le_copy(&sender, bt_conn_get_dst(conn));
     k_spin_unlock(&lock, key);
 
-    LOG_DBG("status v%u state %u elapsed %u ms mode %u battery %u focus %u %u cm exposure %d lock %u rate %u",
+    LOG_DBG("status v%u state %u elapsed %u ms mode %u battery %u focus %u %u cm exposure %d lock %u rate %u project %s",
             status.version, status.state, status.elapsed_ms, status.mode, status.phone_battery,
             status.focus, status.focus_distance_cm, status.exposure_tenths,
-            status.exposure_locked, status.capture_rate_tenths);
+            status.exposure_locked, status.capture_rate_tenths, status.project);
     return len;
 }
 
@@ -90,6 +94,7 @@ void camkeypad_status_view(struct camkeypad_view *out) {
         out->exposure_tenths = last.exposure_tenths;
         out->exposure_locked = last.exposure_locked;
         out->capture_rate_tenths = last.capture_rate_tenths;
+        memcpy(out->project, last.project, sizeof(out->project));
         if (last.version != CAMKEYPAD_PROTOCOL_VERSION) {
             out->link = CAMKEYPAD_LINK_BAD_VERSION;
         } else {

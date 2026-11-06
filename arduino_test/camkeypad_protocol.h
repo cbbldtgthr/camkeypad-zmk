@@ -3,8 +3,9 @@
 
 #include <stddef.h>
 #include <stdint.h>
+#include <string.h>
 
-#define CAMKEYPAD_PROTOCOL_VERSION 4
+#define CAMKEYPAD_PROTOCOL_VERSION 5
 
 #define CAMKEYPAD_SERVICE_UUID_STR "1d0d0dc8-5cd6-4d86-b577-af570c2c28c1"
 /* For Zephyr: BT_UUID_DECLARE_128(CAMKEYPAD_SERVICE_UUID_ENCODE) */
@@ -45,7 +46,9 @@ enum camkeypad_focus_distance_cm {
 #define CAMKEYPAD_HEARTBEAT_MS 2000
 #define CAMKEYPAD_STALE_AFTER_MS 5000
 
-#define CAMKEYPAD_STATUS_LEN 15
+/* The phone must negotiate this ATT MTU before writing status. */
+#define CAMKEYPAD_ATT_MTU 247
+#define CAMKEYPAD_STATUS_LEN 47
 
 struct camkeypad_status {
     uint8_t version;
@@ -58,6 +61,7 @@ struct camkeypad_status {
     int8_t exposure_tenths;
     uint8_t exposure_locked;
     uint16_t capture_rate_tenths;
+    char project[33];
 };
 
 /* Decode a status write. Returns 0 on success, -1 if buf is too short.
@@ -78,5 +82,7 @@ static inline int camkeypad_status_decode(const uint8_t *buf, size_t len,
     out->exposure_tenths = ((int8_t)buf[11] << 0);
     out->exposure_locked = ((uint8_t)buf[12] << 0);
     out->capture_rate_tenths = ((uint16_t)buf[13] << 0) | ((uint16_t)buf[14] << 8);
+    memcpy(out->project, &buf[15], 32);
+    out->project[32] = '\0';
     return 0;
 }

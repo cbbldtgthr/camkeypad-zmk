@@ -22,6 +22,8 @@
 #define RULE "----------------"
 #define REFRESH_MS 100
 #define BLINK_MS 500
+// The body is 25 columns; "proj   " takes 7.
+#define PROJECT_COLUMNS 18
 // Must match config/camkeypad.keymap.
 #define SERVICE_LAYER 1
 #define EXPOSURE_LAYER 2
@@ -84,6 +86,27 @@ static void format_rate(char *buf, size_t size, const struct camkeypad_view *vie
     }
 }
 
+// The font only has printable ASCII, so each other character shows as one '?'. Empty when the
+// phone sends no project.
+static void format_project(char *buf, size_t size, const char *project) {
+    size_t n = 0;
+
+    buf[0] = '\0';
+    if (project[0] == '\0') {
+        return;
+    }
+    n = snprintf(buf, size, "proj   ");
+    for (const char *c = project; *c != '\0' && n + 1 < size; c++) {
+        uint8_t byte = (uint8_t)*c;
+        if ((byte & 0xc0) == 0x80) {
+            continue; // the rest of a UTF-8 character
+        }
+        buf[n++] = byte >= ' ' && byte <= '~' ? byte : '?';
+    }
+    buf[n] = '\0';
+    strcat(buf, "\n");
+}
+
 static void update_blanking(const struct camkeypad_view *view) {
     bool busy = view->link == CAMKEYPAD_LINK_OK && (view->state == CAMKEYPAD_STATE_RECORDING ||
                                                      view->state == CAMKEYPAD_STATE_PAUSED);
@@ -108,7 +131,8 @@ static void refresh(lv_timer_t *timer) {
     char focus[16];
     char exposure[16];
     char rate[24];
-    char body[120] = "";
+    char project[7 + PROJECT_COLUMNS + 2];
+    char body[150] = "";
     bool rate_held = zmk_keymap_layer_active(RATE_LAYER);
     char header[48];
 
@@ -148,7 +172,9 @@ static void refresh(lv_timer_t *timer) {
         format_focus(focus, sizeof(focus), &view);
         format_exposure(exposure, sizeof(exposure), &view);
         format_rate(rate, sizeof(rate), &view, rate_held);
-        snprintf(body, sizeof(body), "%s\nfocus  %s\nexpo   %s%s", state, focus, exposure, rate);
+        format_project(project, sizeof(project) - 1, view.project);
+        snprintf(body, sizeof(body), "%s%s\nfocus  %s\nexpo   %s%s", project, state, focus, exposure,
+                 rate);
         break;
     }
 

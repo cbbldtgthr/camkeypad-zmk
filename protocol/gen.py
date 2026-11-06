@@ -17,6 +17,11 @@ TYPES = {
     "u16": (2, "uint16_t", "int"),
     "u32": (4, "uint32_t", "long"),
 }
+# Plus "str", a fixed-length UTF-8 field padded with zero bytes: { type = "str", length = N }.
+# Java truncates longer strings on a character boundary; C gets N + 1 chars, always terminated.
+
+# The ATT MTU is 23 until the phone asks for more, which leaves 20 bytes for a write.
+MIN_ATT_MTU, MAX_ATT_MTU = 23, 517
 
 # Tables of named u8 values.
 ENUMS = ("state", "mode", "phone_battery", "focus", "focus_distance_cm")
@@ -48,16 +53,28 @@ def load(path):
     for name, value in spec["timing"].items():
         if not isinstance(value, int) or value <= 0:
             fail(f"timing.{name} must be a positive integer")
+    mtu = spec.get("att_mtu")
+    if not isinstance(mtu, int) or not MIN_ATT_MTU <= mtu <= MAX_ATT_MTU:
+        fail(f"att_mtu must be an integer in {MIN_ATT_MTU}..{MAX_ATT_MTU}")
 
     fields = spec["status"]["fields"]
     if not fields or fields[0] != {"name": "version", "type": "u8"}:
         fail("the first status field must be { name = \"version\", type = \"u8\" }")
     offset = 0
     for field in fields:
-        if field.get("type") not in TYPES:
+        if field.get("type") == "str":
+            if not isinstance(field.get("length"), int) or field["length"] < 1:
+                fail(f"status field {field.get('name')!r} needs a positive length")
+            field["size"] = field["length"]
+        elif field.get("type") in TYPES:
+            field["size"] = TYPES[field["type"]][0]
+        else:
             fail(f"status field {field.get('name')!r} has unknown type {field.get('type')!r}")
         field["offset"] = offset
-        offset += TYPES[field["type"]][0]
+        offset += field["size"]
+    # An ATT write carries the MTU less 3 bytes of header.
+    if offset > mtu - 3:
+        fail(f"status is {offset} bytes, more than att_mtu {mtu} allows; raise att_mtu")
     spec["status"]["length"] = offset
     return spec
 
@@ -84,6 +101,7 @@ def gen_c(spec):
         "",
         "#include <stddef.h>",
         "#include <stdint.h>",
+        "#include <string.h>",
         "",
         f"#define CAMKEYPAD_PROTOCOL_VERSION {spec['version']}",
         "",
@@ -106,9 +124,19 @@ def gen_c(spec):
         out += ["};", ""]
     for name, value in spec["timing"].items():
         out.append(f"#define CAMKEYPAD_{name.upper()} {value}")
-    out += ["", f"#define CAMKEYPAD_STATUS_LEN {status['length']}", "", "struct camkeypad_status {"]
+    out += [
+        "",
+        "/* The phone must negotiate this ATT MTU before writing status. */",
+        f"#define CAMKEYPAD_ATT_MTU {spec['att_mtu']}",
+        f"#define CAMKEYPAD_STATUS_LEN {status['length']}",
+        "",
+        "struct camkeypad_status {",
+    ]
     for field in status["fields"]:
-        out.append(f"    {TYPES[field['type']][1]} {field['name']};")
+        if field["type"] == "str":
+            out.append(f"    char {field['name']}[{field['length'] + 1}];")
+        else:
+            out.append(f"    {TYPES[field['type']][1]} {field['name']};")
     out += [
         "};",
         "",
@@ -122,6 +150,10 @@ def gen_c(spec):
         "    }",
     ]
     for field in status["fields"]:
+        if field["type"] == "str":
+            out.append(f"    memcpy(out->{field['name']}, &buf[{field['offset']}], {field['length']});")
+            out.append(f"    out->{field['name']}[{field['length']}] = '\\0';")
+            continue
         size, ctype, _ = TYPES[field["type"]]
         parts = [f"(({ctype})buf[{field['offset'] + i}] << {8 * i})" for i in range(size)]
         out.append(f"    out->{field['name']} = {' | '.join(parts)};")
@@ -136,6 +168,8 @@ def gen_java(spec, package):
         f"// {HEADER_NOTE}",
         f"package {package};",
         "",
+        "import java.nio.charset.StandardCharsets;",
+        "import java.util.Arrays;",
         "import java.util.UUID;",
         "",
         "public final class CamKeypadProtocol {",
@@ -156,16 +190,33 @@ def gen_java(spec, package):
         out.append(f"    public static final long {name.upper()} = {value};")
     out += [
         "",
+        "    /** Request this ATT MTU before writing status. */",
+        f"    public static final int ATT_MTU = {spec['att_mtu']};",
         f"    public static final int STATUS_LEN = {status['length']};",
+        "",
+        "    /** UTF-8 bytes of s, cut to at most max bytes without splitting a character. */",
+        "    private static byte[] utf8Prefix(String s, int max) {",
+        "        byte[] bytes = s.getBytes(StandardCharsets.UTF_8);",
+        "        if (bytes.length <= max)",
+        "            return bytes;",
+        "        int n = max;",
+        "        while (n > 0 && (bytes[n] & 0xc0) == 0x80)",
+        "            n--;",
+        "        return Arrays.copyOf(bytes, n);",
+        "    }",
         "",
         "    /** Encode a status write, little-endian. VERSION is filled in. */",
         "    public static byte[] encodeStatus("
-        + ", ".join(f"{TYPES[f['type']][2]} {camel(f['name'])}" for f in args)
+        + ", ".join(("String" if f["type"] == "str" else TYPES[f["type"]][2]) + " " + camel(f["name"]) for f in args)
         + ") {",
         "        byte[] buf = new byte[STATUS_LEN];",
     ]
     for field in status["fields"]:
         value = "VERSION" if field["name"] == "version" else camel(field["name"])
+        if field["type"] == "str":
+            out.append(f"        byte[] {value}Bytes = utf8Prefix({value}, {field['length']});")
+            out.append(f"        System.arraycopy({value}Bytes, 0, buf, {field['offset']}, {value}Bytes.length);")
+            continue
         for i in range(TYPES[field["type"]][0]):
             shift = f" >>> {8 * i}" if i else ""
             out.append(f"        buf[{field['offset'] + i}] = (byte) (({value}{shift}) & 0xff);")

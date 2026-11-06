@@ -2,10 +2,14 @@
 # Single source of truth. Run `just protocol-gen` after editing; never edit the
 # generated files.
 
-version = 4
+version = 5
 
 service_uuid = "1d0d0dc8-5cd6-4d86-b577-af570c2c28c1"
 status_char_uuid = "18ec2b07-1988-4f4f-a8bd-8f638d214c38"
+
+# The phone asks for this ATT MTU on connecting, so status can outgrow the default 20 bytes.
+# The pad's CONFIG_BT_BUF_ACL_RX_SIZE must be at least att_mtu + 4.
+att_mtu = 247
 
 # Recording state, sent as u8.
 [state]
@@ -51,4 +55,6 @@ fields = [
     { name = "exposure_locked", type = "u8" },
     # Video capture rate in tenths: 10 is normal, higher is time-lapse, lower is slow motion.
     { name = "capture_rate_tenths", type = "u16" },
+    # The last folder of the save location, which names the project.
+    { name = "project", type = "str", length = 32 },
 ]

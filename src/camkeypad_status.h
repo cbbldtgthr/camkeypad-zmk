@@ -2,6 +2,8 @@
 
 #include <stdint.h>
 
+#include <camkeypad_protocol.h>
+
 enum camkeypad_link {
     // Nothing heard for CAMKEYPAD_STALE_AFTER_MS, or the phone disconnected.
     CAMKEYPAD_LINK_NONE,
@@ -23,6 +25,7 @@ struct camkeypad_view {
     int8_t exposure_tenths;
     uint8_t exposure_locked;
     uint16_t capture_rate_tenths;
+    char project[sizeof(((struct camkeypad_status *)0)->project)];
 };
 
 // Safe to call from any thread.
