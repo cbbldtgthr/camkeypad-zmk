@@ -22,6 +22,7 @@ struct camkeypad_view {
     uint16_t focus_distance_cm;
     int8_t exposure_tenths;
     uint8_t exposure_locked;
+    uint16_t capture_rate_tenths;
 };
 
 // Safe to call from any thread.

@@ -25,6 +25,7 @@
 // Must match config/camkeypad.keymap.
 #define SERVICE_LAYER 1
 #define EXPOSURE_LAYER 2
+#define RATE_LAYER 3
 
 static const struct device *display = DEVICE_DT_GET(DT_CHOSEN(zephyr_display));
 
@@ -70,6 +71,19 @@ static void format_exposure(char *buf, size_t size, const struct camkeypad_view 
              view->exposure_locked ? " lock" : "");
 }
 
+static void format_rate(char *buf, size_t size, const struct camkeypad_view *view, bool held) {
+    unsigned int whole = view->capture_rate_tenths / 10;
+    unsigned int tenths = view->capture_rate_tenths % 10;
+
+    if (view->mode != CAMKEYPAD_MODE_VIDEO) {
+        snprintf(buf, size, "%s", held ? "\nrate   video only" : "");
+    } else if (tenths == 0) {
+        snprintf(buf, size, "\nrate   x%u", whole);
+    } else {
+        snprintf(buf, size, "\nrate   x%u.%u", whole, tenths);
+    }
+}
+
 static void update_blanking(const struct camkeypad_view *view) {
     bool busy = view->link == CAMKEYPAD_LINK_OK && (view->state == CAMKEYPAD_STATE_RECORDING ||
                                                      view->state == CAMKEYPAD_STATE_PAUSED);
@@ -93,7 +107,9 @@ static void refresh(lv_timer_t *timer) {
     char state[32];
     char focus[16];
     char exposure[16];
-    char body[96] = "";
+    char rate[24];
+    char body[120] = "";
+    bool rate_held = zmk_keymap_layer_active(RATE_LAYER);
     char header[48];
 
     camkeypad_status_view(&view);
@@ -131,12 +147,16 @@ static void refresh(lv_timer_t *timer) {
         }
         format_focus(focus, sizeof(focus), &view);
         format_exposure(exposure, sizeof(exposure), &view);
-        snprintf(body, sizeof(body), "%s\nfocus  %s\nexpo   %s", state, focus, exposure);
+        format_rate(rate, sizeof(rate), &view, rate_held);
+        snprintf(body, sizeof(body), "%s\nfocus  %s\nexpo   %s%s", state, focus, exposure, rate);
         break;
     }
 
     if (zmk_keymap_layer_active(EXPOSURE_LAYER)) {
         strcpy(title, "EXPOSURE");
+    }
+    if (rate_held) {
+        strcpy(title, "RATE");
     }
     if (zmk_keymap_layer_active(SERVICE_LAYER)) {
         strcpy(title, "SERVICE");

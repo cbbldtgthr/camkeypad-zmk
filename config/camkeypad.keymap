@@ -6,6 +6,7 @@
 #define BASE 0
 #define SERVICE 1
 #define EXPOSURE 2
+#define RATE 3
 
 / {
     behaviors {
@@ -44,8 +45,9 @@
             // Plain letters, so any Bluetooth keyboard works as a remote too. R = shutter or
             // start/stop video, P = pause/resume, M = photo/video, F = auto/manual focus.
             // Holding the zoom keys zooms smoothly through Android key repeat. Holding start/stop
-            // selects the exposure layer, so R is sent on release.
-            bindings = <&kp KP_MINUS &kp KP_PLUS &kp F &kp M &lt EXPOSURE R &kp P>;
+            // selects the exposure layer and holding mode the rate layer, so R and M are sent on
+            // release.
+            bindings = <&kp KP_MINUS &kp KP_PLUS &kp F &lt RATE M &lt EXPOSURE R &kp P>;
             // Manual focus, J farther and K nearer. ZMK reads a right turn as its second
             // direction with this wiring.
             sensor-bindings = <&inc_dec_kp J K>;
@@ -61,6 +63,12 @@
         exposure_layer {
             bindings = <&trans &trans &kp E &none &none &none>;
             sensor-bindings = <&inc_dec_kp H L>;
+        };
+
+        // Hold mode. The encoder sets the time-lapse rate, [ slower and ] faster.
+        rate_layer {
+            bindings = <&trans &trans &none &none &none &none>;
+            sensor-bindings = <&inc_dec_kp LBKT RBKT>;
         };
     };
 };
